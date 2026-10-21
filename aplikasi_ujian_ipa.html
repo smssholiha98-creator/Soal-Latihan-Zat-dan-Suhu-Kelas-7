@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ujian IPA - Wujud Zat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Anti-cheating styles */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Hide scrollbar for panel */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="no-select text-gray-800" oncontextmenu="return false;">
+
+    <!-- APP CONTAINER -->
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-lg relative overflow-hidden flex flex-col">
+        
+        <!-- HEADER -->
+        <header class="bg-blue-600 text-white p-4 shadow-md z-10 flex justify-between items-center">
+            <div>
+                <h1 class="font-bold text-lg leading-tight">Ujian IPA Kls 7</h1>
+                <p class="text-xs opacity-90">Materi: Wujud Zat & Suhu</p>
+            </div>
+            <div id="student-info-header" class="hidden text-right">
+                <p id="header-name" class="font-semibold text-sm truncate w-24"></p>
+                <p id="header-class" class="text-xs"></p>
+            </div>
+        </header>
+
+        <!-- 1. LOGIN SCREEN -->
+        <div id="login-screen" class="p-6 flex-1 flex flex-col justify-center">
+            <div class="text-center mb-8">
+                <svg class="w-16 h-16 text-blue-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h2 class="text-2xl font-bold text-gray-800">Selamat Datang</h2>
+                <p class="text-sm text-gray-500 mt-2">Silakan isi data diri untuk memulai ujian.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="input-name" placeholder="Masukkan nama..." class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                    <input type="text" id="input-class" placeholder="Contoh: 7A" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+                    <p class="text-xs text-yellow-700"><strong>Perhatian:</strong> Sistem ujian ini dilengkapi fitur <i>Anti-Cheating</i>. Dilarang berpindah aplikasi atau tab selama ujian berlangsung.</p>
+                </div>
+                <button onclick="startExam()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg mt-4 transition-colors">
+                    Mulai Ujian
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. EXAM SCREEN -->
+        <div id="exam-screen" class="hidden flex-1 flex flex-col">
+            
+            <!-- Panel Toggle -->
+            <div class="bg-gray-100 p-2 flex justify-between items-center border-b">
+                <span class="text-sm font-medium text-gray-600">Soal <span id="current-q-num">1</span> dari <span id="total-q-num">10</span></span>
+                <button onclick="togglePanel()" class="flex items-center gap-1 text-blue-600 text-sm font-semibold bg-blue-50 px-3 py-1 rounded-md">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    Panel Soal
+                </button>
+            </div>
+
+            <!-- Question Area -->
+            <div class="p-5 flex-1 overflow-y-auto no-scrollbar">
+                <p id="question-text" class="text-lg font-medium text-gray-800 mb-6 leading-relaxed"></p>
+                <div id="options-container" class="space-y-3">
+                    <!-- Options will be generated here -->
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bg-white border-t p-4 grid grid-cols-2 gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <button onclick="prevQuestion()" id="btn-prev" class="py-2.5 px-4 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2 disabled:opacity-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Kembali
+                </button>
+                <button onclick="nextQuestion()" id="btn-next" class="py-2.5 px-4 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2">
+                    Selanjutnya
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                <button onclick="confirmEndSession()" id="btn-finish" class="hidden col-span-2 py-2.5 px-4 rounded-lg font-bold bg-green-500 text-white hover:bg-green-600 flex items-center justify-center gap-2 mt-2">
+                    Akhiri Sesi Ujian
+                </button>
+            </div>
+
+            <!-- Overlay Panel Soal -->
+            <div id="question-panel" class="absolute inset-0 bg-white z-20 flex flex-col transform translate-y-full transition-transform duration-300 ease-in-out">
+                <div class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
+                    <h3 class="font-bold">Panel Nomor Soal</h3>
+                    <button onclick="togglePanel()" class="p-1 hover:bg-blue-700 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4">Navigasi cepat ke nomor soal. Biru menandakan sudah dijawab.</p>
+                    <div id="panel-grid" class="grid grid-cols-5 gap-3">
+                        <!-- Panel buttons generated here -->
+                    </div>
+                </div>
+                <div class="mt-auto p-4 border-t">
+                    <button onclick="confirmEndSession()" class="w-full py-3 rounded-lg font-bold bg-red-500 text-white hover:bg-red-600">
+                        Akhiri Ujian Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. RESULT SCREEN -->
+        <div id="result-screen" class="hidden flex-1 overflow-y-auto bg-gray-50 pb-20">
+            <div class="bg-blue-600 text-white p-8 text-center rounded-b-[40px] shadow-md">
+                <h2 class="text-2xl font-bold mb-2">Ujian Selesai!</h2>
+                <p class="mb-6 opacity-90">Terima kasih telah mengerjakan ujian.</p>
+                <div class="w-32 h-32 bg-white rounded-full mx-auto flex items-center justify-center text-blue-600 shadow-inner mb-4">
+                    <div class="text-center">
+                        <p class="text-sm font-semibold">SKOR</p>
+                        <p id="final-score" class="text-4xl font-black">0</p>
+                    </div>
+                </div>
+                <button onclick="sendWhatsApp()" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center justify-center gap-2 mx-auto w-full max-w-xs transition-transform transform hover:scale-105">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                    Kirim Nilai via WhatsApp
+                </button>
+            </div>
+
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Pembahasan Soal</h3>
+                <div id="discussion-container" class="space-y-6">
+                    <!-- Pembahasan will be injected here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Alert Modal (Anti Cheating) -->
+    <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex justify-center items-center p-4">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Peringatan Anti-Curang!</h3>
+            <p class="text-sm text-gray-600 mb-2">Anda terdeteksi keluar dari layar ujian atau berpindah tab/aplikasi. Tindakan ini dicatat oleh sistem.</p>
+            <p id="cheat-count-text" class="text-red-600 font-bold mb-6">Total pelanggaran: 0</p>
+            <button onclick="closeAlert()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data Soal (Materi Wujud Zat & Suhu IPA Kelas 7 - LOTS & MOTS)
+        const questionsData = [
+            // SOAL WUJUD ZAT (1-15)
+            {
+                q: "Zat padat memiliki bentuk dan volume yang tetap. Hal ini dikarenakan oleh...",
+                options: [
+                    "Gaya tarik antar partikelnya sangat kuat dan letaknya berdekatan.",
+                    "Partikel-partikelnya dapat bergerak dengan sangat bebas.",
+                    "Jarak antar partikelnya sangat berjauhan satu sama lain.",
+                    "Gaya tarik antar partikelnya lemah dan mudah berubah."
+                ],
+                answer: 0,
+                type: "LOTS",
+                pembahasan: "Pada zat padat, partikel-partikelnya tersusun sangat rapat dan gaya tarik-menarik antar partikelnya sangat kuat. Hal ini membuat bentuk dan volume zat padat selalu tetap."
+            },
+            {
+                q: "Sebuah balon ditiup hingga mengembang. Jika balon tersebut ditekan, bentuknya akan berubah tetapi gas di dalamnya tetap menempati seluruh ruangan balon. Sifat zat gas berdasarkan peristiwa tersebut adalah...",
+                options: [
+                    "Bentuk dan volumenya selalu tetap",
+                    "Bentuk tetap namun volumenya berubah-ubah",
+                    "Bentuk dan volumenya berubah-ubah mengikuti wadahnya",
+                    "Volumenya tetap namun bentuknya berubah"
+                ],
+                answer: 2,
+                type: "MOTS",
+                pembahasan: "Zat gas memiliki jarak antar partikel yang sangat renggang dan bergerak bebas. Akibatnya, gas akan selalu mengisi seluruh ruang yang tersedia, sehingga bentuk dan volumenya selalu berubah mengikuti wadahnya."
+            },
+            {
+                q: "Ibu lupa menutup botol minyak wangi yang diletakkan di atas meja kamar. Beberapa jam kemudian, aroma minyak wangi tercium ke seluruh ruangan dan isi botol berkurang. Proses perubahan wujud yang terjadi adalah...",
+                options: [
+                    "Mencair, karena minyak wangi menyerap panas",
+                    "Menguap, yaitu perubahan zat cair menjadi gas",
+                    "Menyublim, yaitu perubahan padat menjadi gas",
+                    "Mengembun, akibat penurunan suhu ruangan"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Minyak wangi adalah zat cair. Ketika botol terbuka, cairan tersebut menguap (berubah menjadi gas) dan menyebar ke seluruh ruangan, sehingga isinya berkurang."
+            },
+            {
+                q: "Peristiwa kapur barus (kamper) di dalam lemari pakaian yang lama-kelamaan menjadi habis tanpa meninggalkan cairan merupakan contoh dari peristiwa...",
+                options: [
+                    "Menguap",
+                    "Membeku",
+                    "Mengkristal",
+                    "Menyublim"
+                ],
+                answer: 3,
+                type: "LOTS",
+                pembahasan: "Menyublim adalah peristiwa perubahan wujud dari zat padat langsung menjadi gas tanpa melalui fase cair. Kapur barus adalah contoh klasik dari peristiwa menyublim."
+            },
+            {
+                q: "Pada pagi hari, sering dijumpai titik-titik air di daun-daun padahal semalam tidak turun hujan. Proses pembentukan titik-titik air ini disebut...",
+                options: [
+                    "Menguap",
+                    "Menyublim",
+                    "Mengembun",
+                    "Mencair"
+                ],
+                answer: 2,
+                type: "LOTS",
+                pembahasan: "Titik-titik air di daun pada pagi hari terjadi karena proses mengembun, yaitu uap air (gas) di udara yang terkena suhu dingin di malam/pagi hari berubah wujud menjadi cair."
+            },
+            {
+                q: "Besi merupakan zat padat, namun jika dipanaskan pada suhu yang sangat tinggi (sekitar 1500°C) besi tersebut akan meleleh. Dalam proses pelelehan ini, zat besi...",
+                options: [
+                    "Melepaskan kalor (panas) ke lingkungan",
+                    "Menyerap kalor (panas) untuk merusak ikatan antar partikel",
+                    "Tidak memerlukan dan tidak melepaskan kalor",
+                    "Mengalami pendinginan secara tiba-tiba"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Perubahan wujud dari padat menjadi cair (melebur/mencair) memerlukan penyerapan energi atau kalor. Energi panas ini digunakan untuk mengalahkan gaya tarik antar partikel yang tadinya kuat."
+            },
+            {
+                q: "Perhatikan data berikut:\n(1) Jarak antar partikel sangat renggang\n(2) Gaya tarik antar partikel sangat lemah\n(3) Gerak partikel sangat cepat dan acak\nKarakteristik tersebut adalah ciri dari zat...",
+                options: [
+                    "Padat",
+                    "Cair",
+                    "Gas",
+                    "Plasma"
+                ],
+                answer: 2,
+                type: "LOTS",
+                pembahasan: "Zat gas memiliki karakteristik partikel yang sangat berjauhan, gaya tarik sangat lemah, dan dapat bergerak sangat bebas dan acak."
+            },
+            {
+                q: "Air yang dimasukkan ke dalam freezer kulkas lama-kelamaan akan berubah menjadi es batu. Pada peristiwa ini terjadi proses...",
+                options: [
+                    "Penyerapan kalor, merubah wujud dari cair ke padat",
+                    "Pelepasan kalor, merubah wujud dari cair ke padat",
+                    "Pelepasan kalor, merubah wujud dari padat ke cair",
+                    "Penyerapan kalor, merubah wujud dari gas ke cair"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Membeku (cair menjadi padat) adalah proses yang terjadi karena zat melepaskan panas (kalor) ke lingkungan (freezer), sehingga suhu turun dan partikel merapat."
+            },
+            {
+                q: "Zat cair memiliki volume yang tetap namun bentuknya berubah menyesuaikan wadahnya. Penyebab utamanya adalah...",
+                options: [
+                    "Gaya tarik partikelnya lebih lemah dari zat padat namun letaknya masih cukup berdekatan.",
+                    "Jarak antar partikelnya sangat jauh sehingga mudah dimampatkan.",
+                    "Partikel zat cair tidak memiliki ruang untuk bergerak sama sekali.",
+                    "Massa jenis zat cair selalu berubah-ubah sesuai tempatnya."
+                ],
+                answer: 0,
+                type: "MOTS",
+                pembahasan: "Zat cair volumenya tetap karena partikelnya masih berdekatan (tidak mudah dimampatkan seperti gas). Namun bentuknya berubah karena gaya tariknya tidak sekuat padat, sehingga partikel bisa bergeser."
+            },
+            {
+                q: "Perubahan wujud zat yang terjadi akibat pelepasan kalor (pendinginan) ditunjukkan oleh kelompok peristiwa...",
+                options: [
+                    "Mencair, menguap, menyublim",
+                    "Membeku, mengembun, mengkristal (deposisi)",
+                    "Mencair, mengembun, menyublim",
+                    "Membeku, menguap, mengkristal"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Proses yang melepaskan kalor menyebabkan benda menjadi lebih dingin/merapat. Contohnya membeku (cair ke padat), mengembun (gas ke cair), dan mengkristal (gas ke padat)."
+            },
+            {
+                q: "Gas sangat mudah dimampatkan (dikompresi) dibandingkan zat padat dan cair. Alasan yang paling tepat adalah...",
+                options: [
+                    "Massa gas sangat ringan",
+                    "Jarak antar partikel gas sangat jauh dan memiliki banyak ruang kosong",
+                    "Partikel gas tidak memiliki massa sama sekali",
+                    "Gaya tolak antar partikel gas sangat besar"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Karena jarak antar partikel gas sangat renggang, partikel-partikel tersebut masih memiliki banyak ruang untuk dirapatkan ketika diberikan tekanan (dimampatkan)."
+            },
+            {
+                q: "Madu ketika dituang dari botol mengalir lebih lambat dibandingkan air. Hal ini berkaitan dengan sifat partikel zat cair yaitu...",
+                options: [
+                    "Madu memiliki gaya tarik antar partikel yang lebih kuat daripada air",
+                    "Partikel madu lebih kecil daripada partikel air",
+                    "Madu termasuk zat padat yang mencair",
+                    "Air memiliki volume yang tidak tetap"
+                ],
+                answer: 0,
+                type: "MOTS",
+                pembahasan: "Kekentalan (viskositas) zat cair bergantung pada seberapa kuat gaya tarik (kohesi) antar partikel penyusunnya. Madu lebih kental karena gaya tarik partikelnya lebih kuat dibanding air."
+            },
+            {
+                q: "Es kering (dry ice) sering digunakan pada panggung pertunjukan untuk menghasilkan efek asap putih. Peristiwa perubahan wujud yang terjadi pada es kering adalah...",
+                options: [
+                    "Mengkristal",
+                    "Mencair",
+                    "Menyublim",
+                    "Menguap"
+                ],
+                answer: 2,
+                type: "LOTS",
+                pembahasan: "Es kering adalah karbon dioksida padat. Pada suhu ruang, es kering langsung berubah dari padat menjadi gas tanpa mencair terlebih dahulu (menyublim)."
+            },
+            {
+                q: "Uap air panas yang menyentuh tutup gelas akan berubah menjadi titik-titik air. Hal ini membuktikan bahwa...",
+                options: [
+                    "Uap air melepaskan kalor saat bersentuhan dengan tutup gelas yang lebih dingin",
+                    "Uap air menyerap kalor dari tutup gelas",
+                    "Uap air merupakan zat padat yang mencair",
+                    "Tutup gelas menyerap kalor dari lingkungan"
+                ],
+                answer: 0,
+                type: "MOTS",
+                pembahasan: "Proses mengembun terjadi ketika gas/uap bersentuhan dengan permukaan yang lebih dingin, sehingga uap melepaskan kalornya dan berubah menjadi zat cair."
+            },
+            {
+                q: "Proses pembentukan salju di awan merupakan contoh perubahan wujud zat dari...",
+                options: [
+                    "Padat menjadi gas (menyublim)",
+                    "Gas menjadi padat (mengkristal/deposisi)",
+                    "Cair menjadi padat (membeku)",
+                    "Cair menjadi gas (menguap)"
+                ],
+                answer: 1,
+                type: "LOTS",
+                pembahasan: "Salju terbentuk dari uap air (gas) di udara dingin yang langsung berubah wujud menjadi kristal-kristal es (padat). Proses ini disebut mengkristal atau deposisi."
+            },
+            // SOAL SUHU (16-30)
+            {
+                q: "Suhu didefinisikan sebagai...",
+                options: [
+                    "Jumlah panas yang terkandung dalam sebuah benda",
+                    "Besaran yang menyatakan derajat atau tingkat panas suatu benda",
+                    "Alat ukur yang digunakan untuk mengetahui cuaca",
+                    "Perpindahan panas dari benda bersuhu tinggi ke rendah"
+                ],
+                answer: 1,
+                type: "LOTS",
+                pembahasan: "Secara fisis, suhu adalah besaran fisika yang menyatakan derajat (tingkatan) panas atau dinginnya suatu benda."
+            },
+            {
+                q: "Mengapa indra peraba (kulit) tidak dapat digunakan sebagai alat ukur suhu yang baku?",
+                options: [
+                    "Karena kulit tidak dapat merasakan panas sama sekali",
+                    "Karena hasil pengukurannya kualitatif dan berbeda-beda tiap orang",
+                    "Karena kulit hanya bisa mengukur suhu benda cair",
+                    "Karena kulit adalah organ tubuh yang mudah rusak"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Kulit manusia bersifat kualitatif (relatif). Sesuatu yang terasa hangat bagi orang yang baru keluar dari ruangan ber-AC, bisa jadi terasa biasa saja bagi orang lain. Oleh karena itu, diperlukan alat ukur kuantitatif (termometer)."
+            },
+            {
+                q: "Alat yang dirancang khusus untuk mengukur suhu secara akurat dan memiliki skala disebut...",
+                options: [
+                    "Barometer",
+                    "Hidrometer",
+                    "Termometer",
+                    "Anemometer"
+                ],
+                answer: 2,
+                type: "LOTS",
+                pembahasan: "Termometer adalah alat pengukur suhu. Barometer mengukur tekanan udara, Hidrometer mengukur massa jenis cairan, dan Anemometer mengukur kecepatan angin."
+            },
+            {
+                q: "Sebagian besar termometer zat cair menggunakan prinsip kerja berdasarkan...",
+                options: [
+                    "Pemuaian volume zat cair saat dipanaskan",
+                    "Perubahan warna zat cair saat dipanaskan",
+                    "Perubahan wujud zat cair menjadi gas",
+                    "Perubahan massa zat cair saat suhunya naik"
+                ],
+                answer: 0,
+                type: "MOTS",
+                pembahasan: "Termometer zat cair (seperti raksa atau alkohol) bekerja dengan prinsip pemuaian zat cair. Ketika terkena panas, volume cairan bertambah dan naik di sepanjang pipa kapiler."
+            },
+            {
+                q: "Salah satu keuntungan menggunakan raksa sebagai cairan pengisi termometer adalah...",
+                options: [
+                    "Harganya murah dan mudah didapat",
+                    "Aman dan tidak beracun jika pecah",
+                    "Dapat mengukur suhu yang sangat rendah (-100°C)",
+                    "Warnanya mengkilat sehingga mudah dilihat dan tidak membasahi dinding kaca"
+                ],
+                answer: 3,
+                type: "LOTS",
+                pembahasan: "Keunggulan raksa meliputi warnanya yang mengkilat (perak) sehingga mudah dibaca, cepat bereaksi terhadap perubahan suhu, dan tidak membasahi dinding pipa kaca."
+            },
+            {
+                q: "Jika kita ingin mengukur suhu di daerah kutub yang sangat dingin (bisa mencapai -60°C), cairan pengisi termometer yang paling cocok digunakan adalah...",
+                options: [
+                    "Air raksa",
+                    "Alkohol",
+                    "Air murni",
+                    "Minyak goreng"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Alkohol memiliki titik beku yang sangat rendah (sekitar -114°C), sehingga tidak akan membeku di daerah kutub, berbeda dengan raksa yang membeku pada -39°C."
+            },
+            {
+                q: "Berdasarkan Sistem Internasional (SI), satuan baku untuk besaran suhu adalah...",
+                options: [
+                    "Celcius",
+                    "Fahrenheit",
+                    "Reamur",
+                    "Kelvin"
+                ],
+                answer: 3,
+                type: "LOTS",
+                pembahasan: "Satuan standar internasional (SI) untuk suhu adalah Kelvin (K), meskipun Celcius lebih sering digunakan dalam kehidupan sehari-hari."
+            },
+            {
+                q: "Dalam pembuatan skala termometer Celcius, penentuan titik tetap bawah (0°C) didasarkan pada peristiwa...",
+                options: [
+                    "Suhu air yang sedang mendidih pada tekanan 1 atm",
+                    "Suhu es yang sedang mencair pada tekanan 1 atm",
+                    "Suhu campuran es dan garam",
+                    "Suhu rata-rata tubuh manusia normal"
+                ],
+                answer: 1,
+                type: "LOTS",
+                pembahasan: "Anders Celsius menentukan titik terbawah (0°C) dari skala termometernya berdasarkan suhu di mana es murni mencair menjadi air pada tekanan standar (1 atm)."
+            },
+            {
+                q: "Termometer klinis (termometer badan) yang biasa digunakan dokter memiliki batas skala ukur sekitar...",
+                options: [
+                    "0°C sampai 100°C",
+                    "-10°C sampai 50°C",
+                    "35°C sampai 42°C",
+                    "0°C sampai 50°C"
+                ],
+                answer: 2,
+                type: "LOTS",
+                pembahasan: "Termometer klinis dirancang khusus untuk mengukur suhu tubuh manusia. Karena suhu tubuh manusia yang hidup tidak mungkin turun di bawah 35°C atau naik di atas 42°C, maka skalanya dibatasi agar lebih teliti."
+            },
+            {
+                q: "Suhu terendah di alam semesta yang secara teoritis partikel benda berhenti bergerak (tidak memiliki energi panas sama sekali) disebut suhu nol mutlak. Skala yang menjadikan titik ini sebagai angka nol adalah skala...",
+                options: [
+                    "Celcius",
+                    "Reamur",
+                    "Fahrenheit",
+                    "Kelvin"
+                ],
+                answer: 3,
+                type: "MOTS",
+                pembahasan: "Skala Kelvin disebut sebagai skala suhu mutlak. Angka 0 Kelvin (-273,15°C) adalah suhu absolut teoritis di mana semua aktivitas termal atau gerakan partikel berhenti."
+            },
+            {
+                q: "Termometer bimetal adalah termometer padat yang prinsip kerjanya memanfaatkan...",
+                options: [
+                    "Pemuaian dua jenis logam yang memiliki koefisien muai berbeda jika dipanaskan",
+                    "Perubahan daya hantar listrik logam",
+                    "Perubahan warna logam saat dipanaskan",
+                    "Pencairan logam pada suhu tertentu"
+                ],
+                answer: 0,
+                type: "MOTS",
+                pembahasan: "Bimetal terdiri dari dua logam berbeda yang disatukan. Saat dipanaskan, logam yang memuainya lebih cepat akan melengkung mendorong jarum penunjuk, menunjukkan skala suhu."
+            },
+            {
+                q: "Untuk mengukur suhu tungku peleburan baja yang sangat tinggi (di atas 1000°C) tanpa menyentuh tungku tersebut, alat ukur yang paling tepat digunakan adalah...",
+                options: [
+                    "Termometer ruangan",
+                    "Termometer klinis",
+                    "Termometer bimetal",
+                    "Pirometer (termometer optik)"
+                ],
+                answer: 3,
+                type: "MOTS",
+                pembahasan: "Pirometer optik bekerja dengan menganalisis radiasi atau spektrum warna cahaya yang dipancarkan oleh benda panas, sehingga pengamat bisa mengukur suhu dari kejauhan tanpa risiko melelehkan alat."
+            },
+            {
+                q: "Skala termometer manakah yang menetapkan angka 32 derajat sebagai titik beku air (titik tetap bawah)?",
+                options: [
+                    "Celcius",
+                    "Fahrenheit",
+                    "Reamur",
+                    "Kelvin"
+                ],
+                answer: 1,
+                type: "LOTS",
+                pembahasan: "Pada skala Fahrenheit, air membeku pada suhu 32°F dan mendidih pada suhu 212°F."
+            },
+            {
+                q: "Semakin panas suhu suatu benda, maka pergerakan partikel-partikel penyusun benda tersebut akan...",
+                options: [
+                    "Semakin lambat dan merapat",
+                    "Berhenti sama sekali",
+                    "Semakin cepat dan saling menjauh",
+                    "Berubah wujud tanpa pergerakan"
+                ],
+                answer: 2,
+                type: "MOTS",
+                pembahasan: "Suhu berbanding lurus dengan energi kinetik (energi gerak) partikel. Semakin tinggi suhu, energi yang dimiliki partikel makin besar sehingga partikel bergerak semakin cepat."
+            },
+            {
+                q: "Mengapa kita tidak dianjurkan menggunakan air biasa sebagai pengisi termometer untuk mengukur suhu ruangan?",
+                options: [
+                    "Karena air tidak bereaksi terhadap panas",
+                    "Karena air membasahi dinding kaca dan jangkauan ukurnya sangat terbatas (0°C-100°C)",
+                    "Karena air warnanya mengkilat sehingga menyilaukan mata",
+                    "Karena air tidak memiliki titik beku"
+                ],
+                answer: 1,
+                type: "MOTS",
+                pembahasan: "Air tidak baik sebagai pengisi termometer karena memiliki sifat anomali, tidak berwarna (sulit dilihat), membasahi dinding kaca, dan jangkauan suhu cairnya terbatas hanya 0°C sampai 100°C."
+            }
+        ];
+
+        // State variables
+        let currentQuestion = 0;
+        let studentAnswers = new Array(questionsData.length).fill(null);
+        let studentData = { name: '', class: '', score: 0 };
+        let isExamRunning = false;
+        let cheatCount = 0;
+
+        // Anti-cheating listeners
+        function handleCheatEvent() {
+            if (isExamRunning) {
+                cheatCount++;
+                document.getElementById('cheat-count-text').innerText = `Total pelanggaran: ${cheatCount}`;
+                document.getElementById('alert-modal').classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') handleCheatEvent();
+        });
+
+        window.addEventListener('blur', handleCheatEvent);
+
+        // Disable Cut, Copy, Paste
+        document.addEventListener('copy', (e) => { e.preventDefault(); return false; });
+        document.addEventListener('cut', (e) => { e.preventDefault(); return false; });
+        document.addEventListener('paste', (e) => { e.preventDefault(); return false; });
+
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
+        }
+
+        // Functions
+        function startExam() {
+            const nameInput = document.getElementById('input-name').value.trim();
+            const classInput = document.getElementById('input-class').value.trim();
+
+            if (!nameInput || !classInput) {
+                alert("Mohon isi Nama dan Kelas terlebih dahulu!");
+                return;
+            }
+
+            studentData.name = nameInput;
+            studentData.class = classInput;
+
+            document.getElementById('header-name').innerText = nameInput;
+            document.getElementById('header-class').innerText = classInput;
+            document.getElementById('student-info-header').classList.remove('hidden');
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('exam-screen').classList.remove('hidden');
+            document.getElementById('exam-screen').classList.add('flex');
+            
+            document.getElementById('total-q-num').innerText = questionsData.length;
+            isExamRunning = true;
+            
+            renderPanel();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = questionsData[currentQuestion];
+            document.getElementById('current-q-num').innerText = currentQuestion + 1;
+            document.getElementById('question-text').innerText = `${currentQuestion + 1}. ${q.q}`;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            q.options.forEach((opt, index) => {
+                const isSelected = studentAnswers[currentQuestion] === index;
+                const optDiv = document.createElement('div');
+                optDiv.className = `p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${isSelected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`;
+                optDiv.onclick = () => selectOption(index);
+                
+                optDiv.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full flex-shrink-0 border-2 flex items-center justify-center ${isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-400 text-gray-500'} text-xs font-bold mt-0.5">
+                            ${letters[index]}
+                        </div>
+                        <p class="text-gray-700 leading-snug">${opt}</p>
+                    </div>
+                `;
+                optionsContainer.appendChild(optDiv);
+            });
+
+            // Update button states
+            document.getElementById('btn-prev').disabled = currentQuestion === 0;
+            
+            if (currentQuestion === questionsData.length - 1) {
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('btn-finish').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('btn-finish').classList.add('hidden');
+            }
+
+            updatePanelActiveState();
+        }
+
+        function selectOption(index) {
+            studentAnswers[currentQuestion] = index;
+            loadQuestion(); // re-render to show selection
+            renderPanel(); // update panel colors
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questionsData.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function togglePanel() {
+            const panel = document.getElementById('question-panel');
+            if (panel.classList.contains('translate-y-full')) {
+                panel.classList.remove('translate-y-full');
+            } else {
+                panel.classList.add('translate-y-full');
+            }
+        }
+
+        function renderPanel() {
+            const panelGrid = document.getElementById('panel-grid');
+            panelGrid.innerHTML = '';
+            
+            for (let i = 0; i < questionsData.length; i++) {
+                const isAnswered = studentAnswers[i] !== null;
+                const btn = document.createElement('button');
+                btn.className = `w-full aspect-square rounded-lg font-bold flex items-center justify-center border-2 transition-colors ${isAnswered ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 text-gray-600 hover:bg-gray-100'} panel-btn-${i}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => {
+                    currentQuestion = i;
+                    togglePanel();
+                    loadQuestion();
+                };
+                panelGrid.appendChild(btn);
+            }
+            updatePanelActiveState();
+        }
+
+        function updatePanelActiveState() {
+            for (let i = 0; i < questionsData.length; i++) {
+                const btn = document.querySelector(`.panel-btn-${i}`);
+                if (btn) {
+                    if (i === currentQuestion) {
+                        btn.classList.add('ring-4', 'ring-blue-300');
+                    } else {
+                        btn.classList.remove('ring-4', 'ring-blue-300');
+                    }
+                }
+            }
+        }
+
+        function confirmEndSession() {
+            const unanswered = studentAnswers.filter(a => a === null).length;
+            let msg = "Apakah Anda yakin ingin mengakhiri sesi ujian?";
+            if (unanswered > 0) {
+                msg = `Terdapat ${unanswered} soal yang belum dijawab. ` + msg;
+            }
+            if (confirm(msg)) {
+                endExam();
+            }
+        }
+
+        function endExam() {
+            isExamRunning = false;
+            
+            // Calculate Score
+            let correctCount = 0;
+            studentAnswers.forEach((ans, index) => {
+                if (ans === questionsData[index].answer) {
+                    correctCount++;
+                }
+            });
+            
+            const finalScore = Math.round((correctCount / questionsData.length) * 100);
+            studentData.score = finalScore;
+
+            // UI Transitions
+            document.getElementById('exam-screen').classList.add('hidden');
+            document.getElementById('exam-screen').classList.remove('flex');
+            
+            const panel = document.getElementById('question-panel');
+            panel.classList.add('translate-y-full'); // hide panel if open
+
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('flex', 'flex-col');
+            
+            document.getElementById('final-score').innerText = finalScore;
+            renderPembahasan();
+        }
+
+        function renderPembahasan() {
+            const container = document.getElementById('discussion-container');
+            const letters = ['A', 'B', 'C', 'D'];
+            container.innerHTML = '';
+
+            questionsData.forEach((q, i) => {
+                const studentAns = studentAnswers[i];
+                const isCorrect = studentAns === q.answer;
+                
+                let studentAnsText = studentAns !== null ? `${letters[studentAns]}. ${q.options[studentAns]}` : "Tidak dijawab";
+                let correctAnsText = `${letters[q.answer]}. ${q.options[q.answer]}`;
+
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-xl border ${isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`;
+                
+                div.innerHTML = `
+                    <div class="flex gap-2 items-start mb-2">
+                        <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold flex-shrink-0 mt-0.5 ${isCorrect ? 'bg-green-500' : 'bg-red-500'}">${i+1}</span>
+                        <p class="font-medium text-gray-800 text-sm leading-relaxed">${q.q}</p>
+                    </div>
+                    <div class="ml-8 text-sm space-y-1">
+                        <p class="text-gray-600">Jawaban Anda: <span class="${isCorrect ? 'text-green-700 font-bold' : 'text-red-600 font-bold'}">${studentAnsText}</span></p>
+                        ${!isCorrect ? `<p class="text-gray-600">Kunci Jawaban: <span class="text-green-700 font-bold">${correctAnsText}</span></p>` : ''}
+                        <div class="mt-3 bg-white p-3 rounded-lg border border-gray-200">
+                            <p class="text-xs font-bold text-gray-700 mb-1">Pembahasan:</p>
+                            <p class="text-xs text-gray-600 leading-relaxed">${q.pembahasan}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function sendWhatsApp() {
+            const targetPhone = "6281226260404";
+            const message = `Nama: ${studentData.name}, Kelas: ${studentData.class}, Skor: ${studentData.score}`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            const waUrl = `https://wa.me/${targetPhone}?text=${encodedMessage}`;
+            window.open(waUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
